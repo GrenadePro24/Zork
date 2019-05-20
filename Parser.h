@@ -7,6 +7,6 @@ class Parser
 		Command parseCommand(string input);
 };
 
-#endif // Parser_
+#endif
 
 

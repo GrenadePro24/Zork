@@ -1,8 +1,9 @@
 #ifndef Command_
 #define Command_
-
 #include <string>
+
 using namespace std;
+
 class Command
 {
 	public:
