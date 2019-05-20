@@ -6,7 +6,7 @@
 class ActionManager
 {
 	public:
-		void chooseAction(Command cmd, Room currentRoom);
+		int chooseAction(Command cmd);
 };
 
 #endif
