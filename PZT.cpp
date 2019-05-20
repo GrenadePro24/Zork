@@ -2,6 +2,7 @@
 #include <list>
 #include <iostream>
 #include <string>
+#include "PZT.h"
 #include "ActionManager.h"
 #include "Command.h"
 #include "Parser.h"
@@ -12,6 +13,7 @@
 
 using namespace std;
 Parser parser;
+ActionManager manager;
 list<Item> inventory;
 list<Item> items;
 list<Room> rooms;
@@ -31,7 +33,42 @@ int main()
 		string input;
 		getline(cin, input);
 		Command cmd = parser.parseCommand(input);
+		cout << cmd.action;
+		manager.chooseAction(cmd,currentRoom);
 		cout << cmd.action << "|" << cmd.targetA << "|" << cmd.conjunction << "|" << cmd.targetB;
+	}
+}
+
+static void loadRoom(Room room)
+{
+	cout << "\n";
+	cout << room.name + "\n";
+	cout << room.description + "\n";
+	currentRoom = room;
+	for(Item initItems : items)
+	{
+		if (initItems.roomLocation == currentRoom.name)
+			cout << "You see a " + initItems.name + " " + initItems.location + "\n";
+	}
+	for(Warp initWarps : warps)
+	{
+		if (initWarps.roomLocation == currentRoom.name)
+		{
+			if (initWarps.type == "door")
+				cout << "There's a door that " + initWarps.description + "\n";
+			if (initWarps.type == "staircase")
+				cout << "There's a staircase that " + initWarps.description + "\n";
+			if (initWarps.type == "path")
+				cout << "There's a path to the " + initWarps.description + "\n";
+			if (initWarps.type == "object")
+				cout << "There's a " + initWarps.name + " " + initWarps.description + "\n";
+		}
+
+	}
+	for(NPC initNPCs : NPCs)
+	{
+		if (initNPCs.roomLocation == currentRoom.name)
+			cout << "You see a " + initNPCs.name + " " + initNPCs.location + "\n";
 	}
 }
 
@@ -135,8 +172,20 @@ void initiateNPCs()
 
 }
 
+void startGame()
+{
+	system("CLS");
+	initiateRooms();
+	initiateWarps();
+	initiateItems();
+	initiateNPCs();
+	currentRoom = rooms.front();
+	inventory = list<Item>();
+	loadRoom(currentRoom);
+}
+
 void exitGame()
 {
-	terminate;
+	terminate();
 }
 

@@ -8,3 +8,7 @@
 *.tlog
 *.pdb
 *.idb
+*.enc
+*.res
+*.h
+*.rc

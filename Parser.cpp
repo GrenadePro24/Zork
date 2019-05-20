@@ -26,25 +26,31 @@ Command Parser::parseCommand(string input)
 	if (input.length() > 0)
 	{
 		targetCommand.action = input.substr(0, input.find(' '));
-		input = input.erase(0, input.find(' ') + 1);
+		input = input.erase(0, input.find(' '));
+		if(input.find_first_of(' ') == 0)
+			input = input.erase(0, 1);
 	}
 	while (input.length() > 0)
 	{
 		if (isConjunction(input.substr(0, input.find(' '))))
 		{
 			targetCommand.conjunction = input.substr(0, input.find(' '));
-			input = input.erase(0, input.find(' ') + 1);
+			input = input.erase(0, input.find(' '));
+			if (input.find_first_of(' ') == 0)
+				input = input.erase(0, 1);
 			break;
 		}
 		else
 		{
 			targetCommand.targetA += input.substr(0, input.find(' '));
-			input = input.erase(0, input.find(' ') + 1);
+			input = input.erase(0, input.find(' '));
+			if (input.find_first_of(' ') == 0)
+				input = input.erase(0, 1);
 		}
 	}
 	if (input.length() > 0)
 	{
-		targetCommand.targetB = input;
+		targetCommand.targetB = input.substr(0, input.find(' '));;
 	}
 	return targetCommand;
 }
