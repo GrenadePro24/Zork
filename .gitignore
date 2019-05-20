@@ -11,3 +11,4 @@
 *.enc
 *.res
 *.rc
+resource.h
