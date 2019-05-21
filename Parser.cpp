@@ -45,7 +45,10 @@ Command Parser::parseCommand(string input)
 			targetCommand.targetA += input.substr(0, input.find(' '));
 			input = input.erase(0, input.find(' '));
 			if (input.find_first_of(' ') == 0)
+			{
 				input = input.erase(0, 1);
+				targetCommand.targetA += " ";
+			}
 		}
 	}
 	if (input.length() > 0)

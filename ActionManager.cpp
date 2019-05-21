@@ -9,62 +9,97 @@
 #include <iostream>
 using namespace std;
 Init init;
-//Warp findWarp(string target)
-//{
-//	Warp resultWarp = Warp("NULL", "NULL", "NULL", "NULL", "NULL", false, "NULL");
-//	for(Warp results : warps)
-//	{
-//		string resultName = results.name;
-//		transform(resultName.begin(), resultName.end(), resultName.begin(), tolower);
-//		transform(target.begin(), target.end(), target.begin(), tolower);
-//		if (resultName == target && results.roomLocation == currentRoom.name)
-//			resultWarp = results;
-//	}
-//	return resultWarp;
-//}
-//
-//Item findItem(list<Item> list, string target, bool overrideRoom)
-//{
-//	Item resutlItem = Item("NULL", "NULL", "NULL", "NULL", "NULL", false, 0, NULL);
-//	for(Item results : list)
-//	{
-//		string resultName = results.name;
-//		transform(resultName.begin(), resultName.end(), resultName.begin(), tolower);
-//		transform(target.begin(), target.end(), target.begin(), tolower);
-//		if (resultName == target && (results.roomLocation == currentRoom.name || overrideRoom))
-//			resutlItem = results;
-//	}
-//	return resutlItem;
-//}
-//
-//NPC findNPC(string target)
-//{
-//	NPC resultNPC = NPC("NULL", "NULL", "NULL", "NULL", 0, 0, "NULL", "NULL");
-//	for(NPC results : NPCs)
-//	{
-//		string resultName = results.name;
-//		transform(resultName.begin(), resultName.end(), resultName.begin(), tolower);
-//		transform(target.begin(), target.end(), target.begin(), tolower);
-//		if (resultName == target && results.roomLocation == currentRoom.name)
-//			resultNPC = results;
-//	}
-//	return resultNPC;
-//}
-//
-//Room findRoom(string target)
-//{
-//	Room resultRoom = Room("NULL", "NULL");
-//	for(Room results : rooms)
-//	{
-//		string resultName = results.name;
-//		transform(resultName.begin(), resultName.end(), resultName.begin(), tolower);
-//		transform(target.begin(), target.end(), target.begin(), tolower);
-//		if (resultName == target)
-//			resultRoom = results;
-//	}
-//	return resultRoom;
-//}
-//
+
+string toLower(string target)
+{
+	transform(target.begin(), target.end(), target.begin(), tolower);
+	return target;
+}
+
+Warp findWarp(string target)
+{
+	Warp resultWarp = Warp("NULL", "NULL", "NULL", "NULL", "NULL", false, "NULL");
+	for(Warp results : init.warps)
+	{
+		string resultName = results.name;
+		if (toLower(resultName) == toLower(target) && results.roomLocation == init.currentRoom.name)
+			resultWarp = results;
+	}
+	return resultWarp;
+}
+
+Item findItem(list<Item> list, string target, bool overrideRoom)
+{
+	Item resutlItem = Item("NULL", "NULL", "NULL", "NULL", "NULL", false, 0, "NULL");
+	for(Item results : list)
+	{
+		string resultName = results.name;
+		if (toLower(resultName) == toLower(target) && (results.roomLocation == init.currentRoom.name || overrideRoom))
+			resutlItem = results;
+	}
+	return resutlItem;
+}
+
+NPC findNPC(string target)
+{
+	NPC resultNPC = NPC("NULL", "NULL", "NULL", "NULL", 0, 0, "NULL", "NULL");
+	for(NPC results : init.NPCs)
+	{
+		string resultName = results.name;
+		if (toLower(resultName) == toLower(target) && results.roomLocation == init.currentRoom.name)
+			resultNPC = results;
+	}
+	return resultNPC;
+}
+
+Room findRoom(string target)
+{
+	Room resultRoom = Room("NULL", "NULL");
+	for(Room results : init.rooms)
+	{
+		string resultName = results.name;
+		if (toLower(resultName) == toLower(target))
+			resultRoom = results;
+	}
+	return resultRoom;
+}
+
+list<Item> removeItem(list<Item> targetList, Item targetItem)
+{
+	list<Item>::iterator it = targetList.begin();
+	int index = 0;
+	for (Item listItem : targetList)
+	{
+		if (listItem.name == targetItem.name)
+		{
+			advance(it, index);
+			break;
+		}
+		else
+			++index;
+	}
+	targetList.erase(it);
+	return targetList;
+}
+
+list<Warp> removeWarp(list<Warp> targetList, Warp targetWarp)
+{
+	list<Warp>::iterator it = targetList.begin();
+	int index = 0;
+	for (Warp listWarp : targetList)
+	{
+		if (listWarp.name == targetWarp.name)
+		{
+			advance(it, index);
+			break;
+		}
+		else
+			++index;
+	}
+	targetList.erase(it);
+	return targetList;
+}
+
 int ActionManager::chooseAction(Command cmd)
 {
 	if (cmd.action == "")
@@ -85,9 +120,180 @@ int ActionManager::chooseAction(Command cmd)
 		return 0;
 	}
 
-	if (cmd.action == "exit" || cmd.action == "quit")
+	if (cmd.action == "quit")
 	{
 		cout << "Why ya leavin?\n";
+		return 0;
+	}
+
+	if (cmd.action == "take")
+	{
+		if (cmd.targetA == "")
+		{
+			cout << "What do you want to take?\n";
+			getline(cin, cmd.targetA);
+		}
+		Item targetItem = findItem(init.items, cmd.targetA, false);
+		if (init.currentRoom.name == targetItem.roomLocation && targetItem.name != "NULL")
+		{
+			init.inventory.push_back(targetItem);
+			init.items = removeItem(init.items, targetItem);
+			cout << targetItem.name + " taken.\n";
+		}
+		else
+			cout << "You can't see that item.\n";
+		return 0;
+	}
+
+	if (cmd.action == "drop")
+	{
+		if (cmd.targetA == "")
+		{
+			cout << "What do you want to drop?\n";
+			getline(cin, cmd.targetA);
+		}
+		Item targetItem = findItem(init.inventory, cmd.targetA, true);
+		if (targetItem.name != "NULL")
+		{
+			init.inventory = removeItem(init.inventory, targetItem);
+			targetItem.location = "on the floor.";
+			targetItem.roomLocation = init.currentRoom.name;
+			init.items.push_back(targetItem);
+			cout << targetItem.name + " dropped.\n";
+		}
+		else
+			cout << "You dont have such item.\n";
+		return 0;
+	}
+
+	if (cmd.action == "look")
+	{
+		init.loadRoom(init.currentRoom);
+		return 0;
+	}
+
+	if (cmd.action == "inventory")
+	{
+		if (init.inventory.size() > 0)
+		{
+			cout << "In your inventory you have:\n";
+			for(Item invItem : init.inventory)
+			{
+				cout << invItem.name + "\n";
+			}
+		}
+		else
+			cout << "Your inventory is empty.\n";
+		return 0;
+	}
+
+	if (cmd.action == "enter")
+	{
+		if (cmd.targetA == "")
+		{
+			cout << "Where do you want to enter?\n";
+			getline(cin, cmd.targetA);
+		}
+		Warp targetWarp = findWarp(cmd.targetA);
+		if (init.currentRoom.name == targetWarp.roomLocation && targetWarp.name != "NULL")
+		{
+			if (!targetWarp.isLocked)
+			{
+				init.currentRoom.name = targetWarp.targetRoom;
+				init.loadRoom(findRoom(targetWarp.targetRoom));
+			}
+			else
+				cout << "This " + targetWarp.type + " is locked.\n";
+		}
+		else
+			cout << "You can't see that location.\n";
+		return 0;
+	}
+
+	if (cmd.action == "go")
+	{
+		if (cmd.targetA == "")
+		{
+			cout << "Where do you want to go?\n";
+			getline(cin, cmd.targetA);
+		}
+		cmd.action = "enter";
+		chooseAction(cmd);
+		return 0;
+	}
+
+	if (cmd.action == "inspect")
+	{
+		if (cmd.targetA == "")
+		{
+			cout << "What do you want to inspect?\n";
+			getline(cin, cmd.targetA);
+		}
+		Item targetItem = findItem(init.inventory, cmd.targetA, true);
+		if (targetItem.name != "NULL")
+		{
+			cout << targetItem.description + "\n";
+		}
+		else
+			cout << "You don't have such item.\n";
+		return 0;
+	}
+
+	if (cmd.action == "use")
+	{
+		if (cmd.targetA == "")
+		{
+			cout << "What do you want to use?\n";
+			getline(cin, cmd.targetA);
+		}
+
+		Item targetItem = findItem(init.inventory, cmd.targetA, true);
+
+		if (targetItem.name == "NULL")
+		{
+			cout << "You don't have such item in your inventory.\n";
+			return 0;
+		}
+		if (targetItem.type == "key")
+		{
+			if (cmd.conjunction == "")
+			{
+				cout << "What do you want to use the key with?\n";
+				getline(cin, cmd.targetB);
+			}
+			Warp targetWarp = findWarp(cmd.targetB);
+			if (targetWarp.name != "NULL")
+			{
+				if (targetWarp.isLocked)
+				{
+					if (toLower(targetWarp.keyItem) == toLower(targetItem.name))
+					{
+						init.warps = removeWarp(init.warps, targetWarp);
+						targetWarp.isLocked = false;
+						init.warps.push_back(targetWarp);
+						init.inventory = removeItem(init.inventory, targetItem);
+						cout << targetWarp.type + " unlocked.\n";
+						return 0;
+					}
+					else
+					{
+						cout << "This key wont open this " + targetWarp.type + ".\n";
+						return 0;
+					}
+				}
+				else
+				{
+					cout << "This " + targetWarp.type + " isn't even locked.\n";
+					return 0;
+				}
+			}
+			else
+			{
+				cout << "You can't see an object named " + cmd.targetB + ".\n";
+				return 0;
+			}
+		}
+		cout << "Nothing interesting happens.\n";
 		return 0;
 	}
 

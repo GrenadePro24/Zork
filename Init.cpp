@@ -14,9 +14,23 @@ list<Item> items;
 list<Room> rooms;
 list<Warp> warps;
 list<NPC> NPCs;
-Room currentRoom = Room("", "");
+Room currentRoom = Room("","");
 int playerHitpoints = 10;
-string instructions = "WIP";
+const char *instructions = "\n"
+"Instructions:"
+"Use \"take\" to pick up items and store them in your inventory.\n"
+"Use \"use\" to use items on warps, npcs and other items.\n"
+"Use \"enter\" to use warps and move to other rooms.\n"
+"Use \"look\" to look around the room you're standing in.\n"
+"Use \"inventory\" to list the items in your inventory.\n"
+"Use \"inspect\" to inspect items in your inventory.\n"
+"Use \"open\" to open containers and get the item inside.\n"
+"Use \"talk\" to talk to NPCs.\n"
+"Use \"attack\" to attack NPCs.\n"
+"Use \"help\" to show these instructions.\n"
+"Use \"quit\" or ""exit"" to end the game.\n"
+"Use \"start\" to start and restart the game.\n"
+"\n";
 
 void Init::initiateRooms()
 {
@@ -37,6 +51,7 @@ void Init::initiateRooms()
 
 
 	//FINALE------------------------------------------
+
 }
 
 void Init::initiateItems()
@@ -115,6 +130,7 @@ void Init::initiateNPCs()
 
 void Init::loadRoom(Room targetRoom)
 {
+	cout << instructions;
 	currentRoom = targetRoom;
 	cout << "\n";
 	cout << currentRoom.name + "\n";

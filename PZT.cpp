@@ -14,13 +14,12 @@
 using namespace std;
 Parser parser;
 ActionManager manager;
-
-bool itemsInit = false, roomsInit = false, warpsInit = false, NPCsInit = false;
+Init initiate;
 
 int main()
 {
-    cout << "Welcome to my Zork-like Adventure." << endl;
-	//cout << initiate.instructions << endl;
+    cout << "Welcome to my Zork-like Adventure.\n";
+	cout << initiate.instructions << "instructions\n";
 	while (true)
 	{
 		cout << ">";
