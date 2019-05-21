@@ -53,7 +53,11 @@ Command Parser::parseCommand(string input)
 	}
 	if (input.length() > 0)
 	{
-		targetCommand.targetB = input.substr(0, input.find(' '));;
+		targetCommand.targetB = input;
 	}
+	if (targetCommand.targetA.length() > 0 && targetCommand.targetA.find_last_of(' ') == targetCommand.targetA.length() - 1)
+		targetCommand.targetA.erase(targetCommand.targetA.length() - 1, 1);
+	if (targetCommand.targetB.length() > 0 && targetCommand.targetB.find_last_of(' ') == targetCommand.targetB.length() - 1)
+		targetCommand.targetB.erase(targetCommand.targetB.length() - 1, 1);
 	return targetCommand;
 }

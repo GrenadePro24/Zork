@@ -113,7 +113,7 @@ void Init::initiateNPCs()
 {
 	NPCs.clear();
 	//START-------------------------------------------
-	NPCs.push_back(NPC("Receptionist", "behind the helpdesk.", "\"Hello it's 7:40am on this sunny friday morning.\"", "Lobby", 10, 2, "", "Coin"));
+	NPCs.push_back(NPC("Receptionist", "behind the helpdesk.", "Hello it's 7:40am on this sunny friday morning.", "Lobby", 10, 2, "", "Coin"));
 
 
 	//PATH1: WALKING----------------------------------

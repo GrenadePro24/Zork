@@ -7,6 +7,8 @@
 #include "NPC.h"
 #include <algorithm>
 #include <iostream>
+#include "windows.h"
+#include "stdlib.h"
 using namespace std;
 Init init;
 
@@ -100,6 +102,56 @@ list<Warp> removeWarp(list<Warp> targetList, Warp targetWarp)
 	return targetList;
 }
 
+list<NPC> removeNPC(list<NPC> targetList, NPC targetNPC)
+{
+	list<NPC>::iterator it = targetList.begin();
+	int index = 0;
+	for (NPC listNPC : targetList)
+	{
+		if (listNPC.name == targetNPC.name)
+		{
+			advance(it, index);
+			break;
+		}
+		else
+			++index;
+	}
+	targetList.erase(it);
+	return targetList;
+}
+
+bool combatSimulator(NPC targetNPC, Item weapon)
+{
+	int attackValue = 0;
+	while (true)
+	{
+		Sleep(1000);
+		attackValue = rand() % weapon.damage;
+		if (attackValue >= targetNPC.hitpoints)
+		{
+			cout << "You killed the " + targetNPC.name + "!\n";
+			return true;
+		}
+		else
+		{
+			cout << "You swing for " << attackValue <<  " points!\n";
+			targetNPC.hitpoints -= attackValue;
+		}
+		Sleep(1000);
+		attackValue = rand() % targetNPC.strength;
+		if (attackValue >= init.playerHitpoints)
+		{
+			cout << "You're dead...\n";
+			return false;
+		}
+		else
+		{
+			cout << "The " + targetNPC.name + " swings for " << attackValue << " points!\n";
+			init.playerHitpoints -= attackValue;
+		}
+	}
+}
+
 int ActionManager::chooseAction(Command cmd)
 {
 	if (cmd.action == "")
@@ -120,9 +172,16 @@ int ActionManager::chooseAction(Command cmd)
 		return 0;
 	}
 
-	if (cmd.action == "quit")
+	if (cmd.action == "help")
 	{
-		cout << "Why ya leavin?\n";
+		cout << init.instructions;
+		return 0;
+	}
+
+	if (cmd.action == "clear")
+	{
+		system("CLS");
+		init.loadRoom(init.currentRoom);
 		return 0;
 	}
 
@@ -163,6 +222,34 @@ int ActionManager::chooseAction(Command cmd)
 		}
 		else
 			cout << "You dont have such item.\n";
+		return 0;
+	}
+
+	if (cmd.action == "open")
+	{
+		if (cmd.targetA == "")
+		{
+			cout << "What do you want to open?\n";
+			getline(cin, cmd.targetA);
+		}
+		Item targetItem = findItem(init.inventory, cmd.targetA, true);
+		if (targetItem.type == "container")
+		{
+			if (targetItem.name != "NULL")
+			{
+				if (targetItem.type == "container")
+				{
+					init.inventory.push_back(findItem(init.items, targetItem.content, true));
+					init.items = removeItem(init.items, findItem(init.items, targetItem.content, true));
+					cout << "You found a " + targetItem.content + " inside the " + targetItem.name + ".\n";
+					init.inventory = removeItem(init.items, targetItem);
+				}
+			}
+			else
+				cout << "You dont have such item.\n";
+		}
+		else
+			cout << "You can't open that.\n";
 		return 0;
 	}
 
@@ -297,5 +384,100 @@ int ActionManager::chooseAction(Command cmd)
 		return 0;
 	}
 
-	return 1;
+	if (cmd.action == "talk")
+	{
+		if (cmd.targetA == "")
+		{
+			cout << "Who do you want to talk to?\n";
+			getline(cin, cmd.targetA);
+		}
+		NPC targetNPC = findNPC(cmd.targetA);
+		if (targetNPC.name != "NULL")
+		{
+			cout << targetNPC.name + ": " + targetNPC.description + "\n";
+		}
+		else
+			cout << "You can't see that NPC.\n";
+		return 0;
+	}
+
+	if (cmd.action == "attack")
+	{
+		cout << cmd.action + "|" + cmd.targetA + "|" + cmd.conjunction + "|" + cmd.targetB + "|\n";
+		if (cmd.targetA == "")
+		{
+			cout << "What do you want to attack?\n";
+			getline(cin, cmd.targetA);
+		}
+		NPC targetNPC = findNPC(cmd.targetA);
+		if (targetNPC.name != "NULL")
+		{
+			if (cmd.targetB == "")
+			{
+				cout << "What do you want to attack the " + targetNPC.name + " with?\n";
+				getline(cin, cmd.targetB);
+			}
+			Item targetItem = findItem(init.inventory, cmd.targetB, true);
+			if (targetItem.name != "NULL")
+			{
+				if (targetItem.type == "weapon")
+				{
+					if (combatSimulator(targetNPC, targetItem))
+					{
+						targetItem = findItem(init.items, targetNPC.reward, true);
+						init.items = removeItem(init.items, targetItem);
+						targetItem.roomLocation = init.currentRoom.name;
+						init.items.push_back(targetItem);
+						cout << "The " + targetNPC.name + " dropped a " + targetItem.name + "!\n";
+						init.NPCs = removeNPC(init.NPCs, targetNPC);
+					}
+					else
+					{
+						cout << "Use \" start\" to restart\n";
+					}
+				}
+				else
+					cout << "That is not a weapon.\n";
+			}
+			else
+				cout << "You dont have that weapon.\n";
+			return 0;
+		}
+		else
+			cout << "You can't see that NPC.\n";
+		return 0;
+	}
+
+	//CHEATS----------------------------
+	if (cmd.action == "cget")
+	{
+		Item targetItem = findItem(init.items, cmd.targetA, true);
+		if (targetItem.name != "NULL")
+		{
+			init.inventory.push_back(targetItem);
+			init.items = removeItem(init.items, targetItem);
+			cout << targetItem.name + " taken.\n";
+		}
+		else
+			cout << "That item doesn't exist.\n";
+		return 0;
+	}
+
+	if (cmd.action == "cwarp")
+	{
+		Room targetRoom = findRoom(cmd.targetA);
+		if (targetRoom.name != "NULL")
+		{
+			init.loadRoom(targetRoom);
+			return 0;
+		}
+		else
+		{
+			cout << "That room doesn't exist.\n";
+			return 0;
+		}
+	}
+
+	cout << "Didn't quite get that. Try again.\n";
+	return 0;
 }

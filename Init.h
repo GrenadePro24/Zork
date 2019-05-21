@@ -17,6 +17,7 @@ public:
 	list<NPC> NPCs;
 	Room currentRoom = Room("","");
 	string instructions;
+	int playerHitpoints = 10;
 
 	void initiateRooms();
 	void initiateItems();
