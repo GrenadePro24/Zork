@@ -6,7 +6,7 @@ Universitat Politecnica de Catalunya.
 Gabriel Rivas María is a software engineer, game designer, developer and all around enthusiast
 with more than four years of experience in the Unity Engine. 
 
-The source of the PZT is available at: https://github.com/GrenadePro24/PZT-Dev
+The source of the PZT is available at: https://github.com/GrenadePro24/Zork
 
 This project is licensed under the terms of Unlicecnse. So do away with it.
 
