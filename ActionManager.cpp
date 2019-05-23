@@ -8,7 +8,6 @@
 #include <algorithm>
 #include <iostream>
 #include "windows.h"
-#include "stdlib.h"
 using namespace std;
 Init init;
 
@@ -32,7 +31,7 @@ Warp findWarp(string target)
 
 Item findItem(list<Item> list, string target, bool overrideRoom)
 {
-	Item resutlItem = Item("NULL", "NULL", "NULL", "NULL", "NULL", false, 0, "NULL");
+	Item resutlItem = Item("NULL", "NULL", "NULL", "NULL", "NULL", false, "NULL", 0, "NULL");
 	for(Item results : list)
 	{
 		string resultName = results.name;
@@ -154,11 +153,6 @@ bool combatSimulator(NPC targetNPC, Item weapon)
 
 int ActionManager::chooseAction(Command cmd)
 {
-	if (cmd.action == "")
-	{
-		return 0;
-	}
-
 	if (cmd.action == "start")
 	{
 		system("CLS");
@@ -169,315 +163,430 @@ int ActionManager::chooseAction(Command cmd)
 		init.inventory.clear();
 		init.currentRoom = init.rooms.front();
 		init.loadRoom(init.currentRoom);
+		init.isInitialized = true;
 		return 0;
 	}
 
-	if (cmd.action == "help")
+	if (init.isInitialized)
 	{
-		cout << init.instructions;
-		return 0;
-	}
-
-	if (cmd.action == "clear")
-	{
-		system("CLS");
-		init.loadRoom(init.currentRoom);
-		return 0;
-	}
-
-	if (cmd.action == "take")
-	{
-		if (cmd.targetA == "")
+		if (cmd.action == "approve")
 		{
-			cout << "What do you want to take?\n";
-			getline(cin, cmd.targetA);
-		}
-		Item targetItem = findItem(init.items, cmd.targetA, false);
-		if (init.currentRoom.name == targetItem.roomLocation && targetItem.name != "NULL")
-		{
-			init.inventory.push_back(targetItem);
-			init.items = removeItem(init.items, targetItem);
-			cout << targetItem.name + " taken.\n";
-		}
-		else
-			cout << "You can't see that item.\n";
-		return 0;
-	}
-
-	if (cmd.action == "drop")
-	{
-		if (cmd.targetA == "")
-		{
-			cout << "What do you want to drop?\n";
-			getline(cin, cmd.targetA);
-		}
-		Item targetItem = findItem(init.inventory, cmd.targetA, true);
-		if (targetItem.name != "NULL")
-		{
-			init.inventory = removeItem(init.inventory, targetItem);
-			targetItem.location = "on the floor.";
-			targetItem.roomLocation = init.currentRoom.name;
-			init.items.push_back(targetItem);
-			cout << targetItem.name + " dropped.\n";
-		}
-		else
-			cout << "You dont have such item.\n";
-		return 0;
-	}
-
-	if (cmd.action == "open")
-	{
-		if (cmd.targetA == "")
-		{
-			cout << "What do you want to open?\n";
-			getline(cin, cmd.targetA);
-		}
-		Item targetItem = findItem(init.inventory, cmd.targetA, true);
-		if (targetItem.type == "container")
-		{
+			if (cmd.targetA == "")
+			{
+				cout << "What do you want to approve?\n";
+				getline(cin, cmd.targetA);
+			}
+			Item targetItem = findItem(init.inventory, cmd.targetA, true);
 			if (targetItem.name != "NULL")
 			{
-				if (targetItem.type == "container")
+				if (targetItem.type == "end")
 				{
-					init.inventory.push_back(findItem(init.items, targetItem.content, true));
-					init.items = removeItem(init.items, findItem(init.items, targetItem.content, true));
-					cout << "You found a " + targetItem.content + " inside the " + targetItem.name + ".\n";
-					init.inventory = removeItem(init.items, targetItem);
+					cout << "Congratulations! You Won!\n";
+					cout << "write \"start\" to start the campaign.\n";
+					init.isInitialized = false;
 				}
+				else
+					cout << "This doesn't need approving.\n";
 			}
 			else
 				cout << "You dont have such item.\n";
-		}
-		else
-			cout << "You can't open that.\n";
-		return 0;
-	}
-
-	if (cmd.action == "look")
-	{
-		init.loadRoom(init.currentRoom);
-		return 0;
-	}
-
-	if (cmd.action == "inventory")
-	{
-		if (init.inventory.size() > 0)
-		{
-			cout << "In your inventory you have:\n";
-			for(Item invItem : init.inventory)
-			{
-				cout << invItem.name + "\n";
-			}
-		}
-		else
-			cout << "Your inventory is empty.\n";
-		return 0;
-	}
-
-	if (cmd.action == "enter")
-	{
-		if (cmd.targetA == "")
-		{
-			cout << "Where do you want to enter?\n";
-			getline(cin, cmd.targetA);
-		}
-		Warp targetWarp = findWarp(cmd.targetA);
-		if (init.currentRoom.name == targetWarp.roomLocation && targetWarp.name != "NULL")
-		{
-			if (!targetWarp.isLocked)
-			{
-				init.currentRoom.name = targetWarp.targetRoom;
-				init.loadRoom(findRoom(targetWarp.targetRoom));
-			}
-			else
-				cout << "This " + targetWarp.type + " is locked.\n";
-		}
-		else
-			cout << "You can't see that location.\n";
-		return 0;
-	}
-
-	if (cmd.action == "go")
-	{
-		if (cmd.targetA == "")
-		{
-			cout << "Where do you want to go?\n";
-			getline(cin, cmd.targetA);
-		}
-		cmd.action = "enter";
-		chooseAction(cmd);
-		return 0;
-	}
-
-	if (cmd.action == "inspect")
-	{
-		if (cmd.targetA == "")
-		{
-			cout << "What do you want to inspect?\n";
-			getline(cin, cmd.targetA);
-		}
-		Item targetItem = findItem(init.inventory, cmd.targetA, true);
-		if (targetItem.name != "NULL")
-		{
-			cout << targetItem.description + "\n";
-		}
-		else
-			cout << "You don't have such item.\n";
-		return 0;
-	}
-
-	if (cmd.action == "use")
-	{
-		if (cmd.targetA == "")
-		{
-			cout << "What do you want to use?\n";
-			getline(cin, cmd.targetA);
-		}
-
-		Item targetItem = findItem(init.inventory, cmd.targetA, true);
-
-		if (targetItem.name == "NULL")
-		{
-			cout << "You don't have such item in your inventory.\n";
 			return 0;
 		}
-		if (targetItem.type == "key")
+
+		if (cmd.action == "help")
 		{
-			if (cmd.conjunction == "")
+			cout << init.instructions;
+			return 0;
+		}
+
+		if (cmd.action == "clear")
+		{
+			system("CLS");
+			init.loadRoom(init.currentRoom);
+			return 0;
+		}
+
+		if (cmd.action == "take")
+		{
+			if (cmd.targetA == "")
 			{
-				cout << "What do you want to use the key with?\n";
+				cout << "What do you want to take?\n";
+				getline(cin, cmd.targetA);
+			}
+			Item targetItem = findItem(init.items, cmd.targetA, false);
+			if (init.currentRoom.name == targetItem.roomLocation && targetItem.name != "NULL")
+			{
+				init.inventory.push_back(targetItem);
+				init.items = removeItem(init.items, targetItem);
+				cout << targetItem.name + " taken.\n";
+			}
+			else
+				cout << "You can't see that item.\n";
+			return 0;
+		}
+
+		if (cmd.action == "drop")
+		{
+			if (cmd.targetA == "")
+			{
+				cout << "What do you want to drop?\n";
+				getline(cin, cmd.targetA);
+			}
+			Item targetItem = findItem(init.inventory, cmd.targetA, true);
+			if (targetItem.name != "NULL")
+			{
+				init.inventory = removeItem(init.inventory, targetItem);
+				targetItem.location = "on the floor.";
+				targetItem.roomLocation = init.currentRoom.name;
+				init.items.push_back(targetItem);
+				cout << targetItem.name + " dropped.\n";
+			}
+			else
+				cout << "You dont have such item.\n";
+			return 0;
+		}
+
+		if (cmd.action == "open")
+		{
+			if (cmd.targetA == "")
+			{
+				cout << "What do you want to open?\n";
+				getline(cin, cmd.targetA);
+			}
+			Item targetItem = findItem(init.inventory, cmd.targetA, true);
+			if (targetItem.type == "container")
+			{
+				if (targetItem.name != "NULL")
+				{
+					if (!targetItem.isLocked)
+					{
+						init.inventory.push_back(findItem(init.items, targetItem.content, true));
+						init.items = removeItem(init.items, findItem(init.items, targetItem.content, true));
+						cout << "You found a " + targetItem.content + " inside the " + targetItem.name + ".\n";
+						init.inventory = removeItem(init.inventory, targetItem);
+					}
+					else
+						cout << "This " + targetItem.name + " is locked.\n";
+				}
+				else
+					cout << "You dont have such item.\n";
+			}
+			else
+				cout << "You can't open that.\n";
+			return 0;
+		}
+
+		if (cmd.action == "give")
+		{
+			if (cmd.targetA == "")
+			{
+				cout << "What do you want to give?\n";
+				getline(cin, cmd.targetA);
+			}
+			if (cmd.targetB == "")
+			{
+				cout << "Who do you want to give the " + cmd.targetA + " to?\n";
 				getline(cin, cmd.targetB);
 			}
-			Warp targetWarp = findWarp(cmd.targetB);
-			if (targetWarp.name != "NULL")
+			Item targetItem = findItem(init.inventory, cmd.targetA, true);
+			NPC targetNPC = findNPC(cmd.targetB);
+			if (targetItem.name != "NULL")
 			{
-				if (targetWarp.isLocked)
+				if (targetNPC.name != "NULL")
 				{
-					if (toLower(targetWarp.keyItem) == toLower(targetItem.name))
+					if (targetNPC.keyItem == targetItem.name)
 					{
-						init.warps = removeWarp(init.warps, targetWarp);
-						targetWarp.isLocked = false;
-						init.warps.push_back(targetWarp);
-						init.inventory = removeItem(init.inventory, targetItem);
-						cout << targetWarp.type + " unlocked.\n";
-						return 0;
+						init.inventory.push_back(findItem(init.items, targetNPC.reward, true));
+						init.inventory = removeItem(init.inventory, findItem(init.inventory, targetItem.name, true));
+						init.NPCs = removeNPC(init.NPCs, targetNPC);
+						cout << "You gave the " + targetItem.name + " to the " + targetNPC.name + " and it gave you a " + targetNPC.reward + " back.\n";
+					}
+					else
+						cout << "The " + targetNPC.name + "dowsn't want that " + targetItem.name + ".\n";
+				}
+				else
+					cout << "You dont see that NPC.\n";
+			}
+			else
+				cout << "You dont have such item.\n";
+			return 0;
+		}
+
+		if (cmd.action == "look")
+		{
+			init.loadRoom(init.currentRoom);
+			return 0;
+		}
+
+		if (cmd.action == "inventory")
+		{
+			if (init.inventory.size() > 0)
+			{
+				cout << "In your inventory you have:\n";
+				for (Item invItem : init.inventory)
+				{
+					cout << invItem.name + "\n";
+				}
+			}
+			else
+				cout << "Your inventory is empty.\n";
+			return 0;
+		}
+
+		if (cmd.action == "enter")
+		{
+			if (cmd.targetA == "")
+			{
+				cout << "Where do you want to enter?\n";
+				getline(cin, cmd.targetA);
+			}
+			Warp targetWarp = findWarp(cmd.targetA);
+			if (init.currentRoom.name == targetWarp.roomLocation && targetWarp.name != "NULL")
+			{
+				if (!targetWarp.isLocked)
+				{
+					init.currentRoom.name = targetWarp.targetRoom;
+					init.loadRoom(findRoom(targetWarp.targetRoom));
+				}
+				else
+					cout << "This " + targetWarp.type + " is locked.\n";
+			}
+			else
+				cout << "You can't see that location.\n";
+			return 0;
+		}
+
+		if (cmd.action == "go")
+		{
+			if (cmd.targetA == "")
+			{
+				cout << "Where do you want to go?\n";
+				getline(cin, cmd.targetA);
+			}
+			cmd.action = "enter";
+			chooseAction(cmd);
+			return 0;
+		}
+
+		if (cmd.action == "inspect")
+		{
+			if (cmd.targetA == "")
+			{
+				cout << "What do you want to inspect?\n";
+				getline(cin, cmd.targetA);
+			}
+			Item targetItem = findItem(init.inventory, cmd.targetA, true);
+			if (targetItem.name != "NULL")
+			{
+				cout << targetItem.description + "\n";
+			}
+			else
+				cout << "You don't have such item.\n";
+			return 0;
+		}
+
+		if (cmd.action == "use")
+		{
+			if (cmd.targetA == "")
+			{
+				cout << "What do you want to use?\n";
+				getline(cin, cmd.targetA);
+			}
+
+			Item targetItem = findItem(init.inventory, cmd.targetA, true);
+
+			if (targetItem.name == "NULL")
+			{
+				cout << "You don't have such item in your inventory.\n";
+				return 0;
+			}
+			if (targetItem.type == "key")
+			{
+				if (cmd.conjunction == "")
+				{
+					cout << "What do you want to use the key with?\n";
+					getline(cin, cmd.targetB);
+				}
+				Warp targetWarp = findWarp(cmd.targetB);
+				Item targetItemB = findItem(init.inventory, cmd.targetB, true);
+				if ((targetWarp.name != "NULL" && targetItemB.name == "NULL") || (targetWarp.name == "NULL" && targetItemB.name != "NULL"))
+				{
+					if (targetWarp.isLocked || targetItemB.isLocked)
+					{
+						if (targetWarp.name != "NULL")
+						{
+							if (toLower(targetWarp.keyItem) == toLower(targetItem.name))
+							{
+								init.warps = removeWarp(init.warps, targetWarp);
+								targetWarp.isLocked = false;
+								init.warps.push_back(targetWarp);
+								init.inventory = removeItem(init.inventory, targetItem);
+								cout << targetWarp.type + " unlocked.\n";
+								return 0;
+							}
+							else
+							{
+								cout << "This key wont open this " + targetWarp.type + ".\n";
+								return 0;
+							}
+						}
+						if (targetItemB.name != "NULL")
+						{
+							if (toLower(targetItemB.keyItem) == toLower(targetItem.name))
+							{
+								init.inventory = removeItem(init.inventory, targetItemB);
+								targetItemB.isLocked = false;
+								init.inventory.push_back(targetItemB);
+								init.inventory = removeItem(init.inventory, targetItem);
+								cout << targetItemB.name + " unlocked.\n";
+								return 0;
+							}
+							else
+							{
+								cout << "This key wont open this " + targetWarp.type + ".\n";
+								return 0;
+							}
+						}
 					}
 					else
 					{
-						cout << "This key wont open this " + targetWarp.type + ".\n";
+						cout << "This " + targetWarp.type + " isn't even locked.\n";
 						return 0;
 					}
 				}
 				else
 				{
-					cout << "This " + targetWarp.type + " isn't even locked.\n";
+					cout << "You can't see an object named " + cmd.targetB + ".\n";
 					return 0;
 				}
 			}
+			if (targetItem.type == "potion")
+			{
+				init.playerHitpoints += targetItem.damage;
+				init.inventory = removeItem(init.inventory, targetItem);
+				cout << "Healed " << targetItem.damage << " hitpoints with " + targetItem.name + "\n";
+				return 0;
+			}
+			cout << "Nothing interesting happens.\n";
+			return 0;
+		}
+
+		if (cmd.action == "read")
+		{
+			if (cmd.targetA == "")
+			{
+				cout << "Who do you want to read?\n";
+				getline(cin, cmd.targetA);
+			}
+			Item targetSign = findItem(init.items, cmd.targetA, false);
+			if (targetSign.name != "NULL")
+			{
+				cout << targetSign.description + "\n";
+			}
+			else
+				cout << "You can't see that Sign.\n";
+			return 0;
+		}
+
+		if (cmd.action == "talk")
+		{
+			if (cmd.targetA == "")
+			{
+				cout << "Who do you want to talk to?\n";
+				getline(cin, cmd.targetA);
+			}
+			NPC targetNPC = findNPC(cmd.targetA);
+			if (targetNPC.name != "NULL")
+			{
+				cout << targetNPC.name + ": " + targetNPC.description + "\n";
+			}
+			else
+				cout << "You can't see that NPC.\n";
+			return 0;
+		}
+
+		if (cmd.action == "attack")
+		{
+			if (cmd.targetA == "")
+			{
+				cout << "What do you want to attack?\n";
+				getline(cin, cmd.targetA);
+			}
+			NPC targetNPC = findNPC(cmd.targetA);
+			if (targetNPC.name != "NULL")
+			{
+				if (cmd.targetB == "")
+				{
+					cout << "What do you want to attack the " + targetNPC.name + " with?\n";
+					getline(cin, cmd.targetB);
+				}
+				Item targetItem = findItem(init.inventory, cmd.targetB, true);
+				if (targetItem.name != "NULL")
+				{
+					if (targetItem.type == "weapon")
+					{
+						if (combatSimulator(targetNPC, targetItem))
+						{
+							targetItem = findItem(init.items, targetNPC.reward, true);
+							init.items = removeItem(init.items, targetItem);
+							targetItem.roomLocation = init.currentRoom.name;
+							init.items.push_back(targetItem);
+							cout << "The " + targetNPC.name + " dropped a " + targetItem.name + "!\n";
+							init.NPCs = removeNPC(init.NPCs, targetNPC);
+						}
+						else
+						{
+							cout << "Use \" start\" to restart\n";
+							init.isInitialized = false;
+						}
+					}
+					else
+						cout << "That is not a weapon.\n";
+				}
+				else
+					cout << "You dont have that weapon.\n";
+				return 0;
+			}
+			else
+				cout << "You can't see that NPC.\n";
+			return 0;
+		}
+
+		//CHEATS----------------------------
+		if (cmd.action == "cget")
+		{
+			Item targetItem = findItem(init.items, cmd.targetA, true);
+			if (targetItem.name != "NULL")
+			{
+				init.inventory.push_back(targetItem);
+				init.items = removeItem(init.items, targetItem);
+				cout << targetItem.name + " taken.\n";
+			}
+			else
+				cout << "That item doesn't exist.\n";
+			return 0;
+		}
+
+		if (cmd.action == "cwarp")
+		{
+			Room targetRoom = findRoom(cmd.targetA);
+			if (targetRoom.name != "NULL")
+			{
+				init.loadRoom(targetRoom);
+				return 0;
+			}
 			else
 			{
-				cout << "You can't see an object named " + cmd.targetB + ".\n";
+				cout << "That room doesn't exist.\n";
 				return 0;
 			}
 		}
-		cout << "Nothing interesting happens.\n";
+	}
+	else
+	{
+		cout << "write \"start\" to start the campaign.\n";
 		return 0;
 	}
-
-	if (cmd.action == "talk")
-	{
-		if (cmd.targetA == "")
-		{
-			cout << "Who do you want to talk to?\n";
-			getline(cin, cmd.targetA);
-		}
-		NPC targetNPC = findNPC(cmd.targetA);
-		if (targetNPC.name != "NULL")
-		{
-			cout << targetNPC.name + ": " + targetNPC.description + "\n";
-		}
-		else
-			cout << "You can't see that NPC.\n";
-		return 0;
-	}
-
-	if (cmd.action == "attack")
-	{
-		cout << cmd.action + "|" + cmd.targetA + "|" + cmd.conjunction + "|" + cmd.targetB + "|\n";
-		if (cmd.targetA == "")
-		{
-			cout << "What do you want to attack?\n";
-			getline(cin, cmd.targetA);
-		}
-		NPC targetNPC = findNPC(cmd.targetA);
-		if (targetNPC.name != "NULL")
-		{
-			if (cmd.targetB == "")
-			{
-				cout << "What do you want to attack the " + targetNPC.name + " with?\n";
-				getline(cin, cmd.targetB);
-			}
-			Item targetItem = findItem(init.inventory, cmd.targetB, true);
-			if (targetItem.name != "NULL")
-			{
-				if (targetItem.type == "weapon")
-				{
-					if (combatSimulator(targetNPC, targetItem))
-					{
-						targetItem = findItem(init.items, targetNPC.reward, true);
-						init.items = removeItem(init.items, targetItem);
-						targetItem.roomLocation = init.currentRoom.name;
-						init.items.push_back(targetItem);
-						cout << "The " + targetNPC.name + " dropped a " + targetItem.name + "!\n";
-						init.NPCs = removeNPC(init.NPCs, targetNPC);
-					}
-					else
-					{
-						cout << "Use \" start\" to restart\n";
-					}
-				}
-				else
-					cout << "That is not a weapon.\n";
-			}
-			else
-				cout << "You dont have that weapon.\n";
-			return 0;
-		}
-		else
-			cout << "You can't see that NPC.\n";
-		return 0;
-	}
-
-	//CHEATS----------------------------
-	if (cmd.action == "cget")
-	{
-		Item targetItem = findItem(init.items, cmd.targetA, true);
-		if (targetItem.name != "NULL")
-		{
-			init.inventory.push_back(targetItem);
-			init.items = removeItem(init.items, targetItem);
-			cout << targetItem.name + " taken.\n";
-		}
-		else
-			cout << "That item doesn't exist.\n";
-		return 0;
-	}
-
-	if (cmd.action == "cwarp")
-	{
-		Room targetRoom = findRoom(cmd.targetA);
-		if (targetRoom.name != "NULL")
-		{
-			init.loadRoom(targetRoom);
-			return 0;
-		}
-		else
-		{
-			cout << "That room doesn't exist.\n";
-			return 0;
-		}
-	}
-
 	cout << "Didn't quite get that. Try again.\n";
 	return 0;
 }

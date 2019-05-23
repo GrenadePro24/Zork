@@ -6,7 +6,7 @@
 
 #include <iostream>
 
-list<string> conjunctions = {"with", "on"};
+list<string> conjunctions = {"with", "on", "to"};
 
 bool isConjunction(string target)
 {

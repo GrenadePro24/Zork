@@ -7,7 +7,7 @@ using namespace std;
 class Item
 {
 	public:
-		Item(string name, string type, string location, string description, string roomLocation, bool isPickup, int damage, string content);
+		Item(string name, string type, string location, string description, string roomLocation, bool isLocked, string keyItem, int damage, string content);
 		~Item();
 	public :
 		string name;
@@ -15,7 +15,8 @@ class Item
 		string location;
 		string description;
 		string roomLocation;
-		bool isPickup;
+		bool isLocked;
+		string keyItem;
 		int damage;
 		string content;
 };

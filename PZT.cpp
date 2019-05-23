@@ -19,7 +19,7 @@ Init initiate;
 int main()
 {
     cout << "Welcome to my Zork-like Adventure.\n";
-	cout << initiate.instructions << "instructions\n";
+	cout << initiate.instructions;
 	while (true)
 	{
 		cout << ">";
