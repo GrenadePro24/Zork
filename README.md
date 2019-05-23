@@ -1,7 +1,7 @@
 # PZT-Dev
 Project Zork-like Test, or PZT for short, is a Zork clone designed by Gabriel Rivas.
 Developed as an admission test for the "Advanced Programming for AAA Video Games" master in the
-Universitat Polotecnica de Catalunya.
+Universitat Politecnica de Catalunya.
 
 Gabriel Rivas María is a software engineer, game designer, developer and all around enthusiast
 with more than four years of experience in the Unity Engine. 
