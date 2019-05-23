@@ -16,6 +16,7 @@ PZT's Main objective is to get to your (the player) office and approve some form
 There are three paths to choose from to get there, and one of those has two ways to complete it.
 
 Walkthroughs:
+
 Taxi Path:
 Pick up the Yellow Key
 Unlock the Apartment Hallway with the Yellow Key
